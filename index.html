@@ -1,0 +1,33 @@
+<?php
+
+$url = "https://sim.vuiz.net/simsimi.php";
+
+$curl = curl_init($url);
+curl_setopt($curl, CURLOPT_URL, $url);
+curl_setopt($curl, CURLOPT_POST, true);
+curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
+
+$headers = array(
+   "authority: sim.vuiz.net",
+   "user-agent: Mozilla/5.0 (Linux; Android 6.0.1; Moto G (4)) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.88 Mobile Safari/537.36",
+   "content-type: application/x-www-form-urlencoded; charset=UTF-8",
+   "origin: https://sim.vuiz.net",
+   "referer: https://sim.vuiz.net/",
+   "accept-language: vi-VN,vi;q=0.9",
+   "cookie: __cfduid=d4c95d038309742de4a9fdada2044a7381608964285; PHPSESSID=b48a929f62e11e3d6adef6c71153504c; __zi=3000.SSZzejyD3iiYaAMvqmC2YMMKwxVBG5wRRulvzTbMIDempV_tb1D3tJd2zRsS44cMFyF-kPyNJ90m.1; fpsend=148978",
+);
+curl_setopt($curl, CURLOPT_HTTPHEADER, $headers);
+
+$data = "hoi=abccc&lang=vn";
+
+curl_setopt($curl, CURLOPT_POSTFIELDS, $data);
+
+//for debug only!
+curl_setopt($curl, CURLOPT_SSL_VERIFYHOST, false);
+curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, false);
+
+$resp = curl_exec($curl);
+curl_close($curl);
+var_dump($resp);
+
+?>
