@@ -1,33 +1,74 @@
 <?php
 
-$url = "https://sim.vuiz.net/simsimi.php";
+/**
+ * Project : YoutbeDownloader
+ * User: thuytien
+ * Date: 10/5/2014
+ * Time: 11:11 PM
+ * Using code from https://github.com/jeckman/YouTube-Downloader
+ */
+class YoutbeDownloader
+{
+    private static $endpoint = "http://www.youtube.com/get_video_info";
 
-$curl = curl_init($url);
-curl_setopt($curl, CURLOPT_URL, $url);
-curl_setopt($curl, CURLOPT_POST, true);
-curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
+    public static function getInstance()
+    {
+        static $instance = null;
+        if (null === $instance) {
+            $instance = new static();
+        }
 
-$headers = array(
-   "authority: sim.vuiz.net",
-   "user-agent: Mozilla/5.0 (Linux; Android 6.0.1; Moto G (4)) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.88 Mobile Safari/537.36",
-   "content-type: application/x-www-form-urlencoded; charset=UTF-8",
-   "origin: https://sim.vuiz.net",
-   "referer: https://sim.vuiz.net/",
-   "accept-language: vi-VN,vi;q=0.9",
-   "cookie: __cfduid=d4c95d038309742de4a9fdada2044a7381608964285; PHPSESSID=b48a929f62e11e3d6adef6c71153504c; __zi=3000.SSZzejyD3iiYaAMvqmC2YMMKwxVBG5wRRulvzTbMIDempV_tb1D3tJd2zRsS44cMFyF-kPyNJ90m.1; fpsend=148978",
-);
-curl_setopt($curl, CURLOPT_HTTPHEADER, $headers);
+        return $instance;
+    }
 
-$data = "hoi=abccc&lang=vn";
+    public function getLink($id)
+    {
+        $API_URL = self::$endpoint . "?&video_id=" . $id;
+        $video_info = $this->curlGet($API_URL);
 
-curl_setopt($curl, CURLOPT_POSTFIELDS, $data);
+        $url_encoded_fmt_stream_map = '';
+        parse_str($video_info);
+        if(isset($reason))
+        {
+            return $reason;
+        }
+        if (isset($url_encoded_fmt_stream_map)) {
+            $my_formats_array = explode(',', $url_encoded_fmt_stream_map);
+        } else {
+            return 'No encoded format stream found.';
+        }
+        if (count($my_formats_array) == 0) {
+            return 'No format stream map found - was the video id correct?';
+        }
+        $avail_formats[] = '';
+        $i = 0;
+        $ipbits = $ip = $itag = $sig = $quality = $type = $url = '';
+        $expire = time();
+        foreach ($my_formats_array as $format) {
+            parse_str($format);
+            $avail_formats[$i]['itag'] = $itag;
+            $avail_formats[$i]['quality'] = $quality;
+            $type = explode(';', $type);
+            $avail_formats[$i]['type'] = $type[0];
+            $avail_formats[$i]['url'] = urldecode($url) . '&signature=' . $sig;
+            parse_str(urldecode($url));
+            $avail_formats[$i]['expires'] = date("G:i:s T", $expire);
+            $avail_formats[$i]['ipbits'] = $ipbits;
+            $avail_formats[$i]['ip'] = $ip;
+            $i++;
+        }
+        return $avail_formats;
+    }
 
-//for debug only!
-curl_setopt($curl, CURLOPT_SSL_VERIFYHOST, false);
-curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, false);
-
-$resp = curl_exec($curl);
-curl_close($curl);
-var_dump($resp);
-
-?>
+    function curlGet($URL)
+    {
+        $ch = curl_init();
+        $timeout = 3;
+        curl_setopt($ch, CURLOPT_URL, $URL);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+        curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, $timeout);
+        $tmp = curl_exec($ch);
+        curl_close($ch);
+        return $tmp;
+    }
+} 
